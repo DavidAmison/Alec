@@ -24,6 +24,7 @@ class AlecChat(BeardChatHandler):
     user_name = ''
     
     __userhelp__ = """Personal Assistant: Start by typing Hi Alec."""
+    _timeout = 90
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -37,21 +38,21 @@ class AlecChat(BeardChatHandler):
     async def start(self, msg):
         #Deconstruct the message to try and find out what is wanted
         print('Message Recieved')
-        #Extract Data
+        #Extract Data and put in correct format for Alec
+        #TODO AL_msg = {'chat_id':'','user_id':'','msg':msg['text'],'user_name':msg['from']['first_name']}
         self.msg_text = msg['text']
-        self.msg_username = msg['from']['first_name']    
-        
+        self.msg_username = msg['from']['first_name']
         #Check whether AL is waiting for a reply
         if self.AL.wait_for_reply:
             print('Waiting for Reply')
-            self.AL.wait_for_reply = False
+            self.AL.reply(self.msg_text, self.msg_username)
         else:                    
             await self.AL.message(self.msg_text, self.msg_username)
             
     async def teach(self,msg):
         print('Command Recieved: Teach')
         self.msg_text = msg['text']
-        self.msg_username = msg['from']['first_name']
+        self.msg_username = msg['from']['first_name']        
         await self.AL.teach(self.msg_text, self.msg_username)
 
             
