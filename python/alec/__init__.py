@@ -1,12 +1,5 @@
 from skybeard.beards import BeardChatHandler
 from skybeard.predicates import Filters
-import asyncio
-
-import re
-from textblob import TextBlob
-from textblob import Word
-
-import random
 
 from . import alec
 
@@ -14,16 +7,17 @@ class AlecChat(BeardChatHandler):
 
     __commands__ = [
         (Filters.text_no_cmd, 'start',
-         'Repeats back what is given'),
+         'Does stuff'),
         ('teach','teach',
          'Teach Alec to recognise certain input'),
         ('talk','talk',
          'Puts Alec into conversation mode'),
+        ('organise','organise',
+         'Organises a reminder or an event'),
     ]
     
-    user_name = ''
-    
     __userhelp__ = """Personal Assistant: Start by typing Hi Alec."""
+    
     _timeout = 90
     
     def __init__(self, *args, **kwargs):
@@ -55,7 +49,12 @@ class AlecChat(BeardChatHandler):
         self.msg_username = msg['from']['first_name']        
         await self.AL.teach(self.msg_text, self.msg_username)
 
-            
+    async def organise(self,msg):
+        print('Command Recieved: Organise')
+        self.msg_text = msg['text']
+        self.msg_username = msg['from']['first_name']
+        await self.AL.organise(self.msg_text,self.msg_username)
+        
     async def talk(self,msg):
         print('Command Recieved: Talk')
         self.AL.talk()

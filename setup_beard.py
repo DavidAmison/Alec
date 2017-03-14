@@ -1,3 +1,6 @@
 from skybeard.utils import setup_beard
 
-setup_beard("alec")
+try:
+    setup_beard("alec")
+except Exception as e:
+    print('there was a problem: ' + str(e))
