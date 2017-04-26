@@ -1,0 +1,42 @@
+25/4/2017 0:0 /event 25-april
+25/5/2017 10:0 /event 25th of next month at 10
+25/8/2018 0:0 /event next year 25th august
+7/4/2017 17:7 /event sometime soon
+7/4/2017 17:7 /event sometime
+30/3/2018 0:0 /event 5 15 march 30th
+30/3/2018 0:0 /event 0515 march 30th
+8/4/2017 5:15 /event 5:15 tomorrow
+12/4/2017 0:0 /event next wednesday
+12/4/2017 2:0 /event next wednesday at 2
+7/4/2017 17:26 /event 56hr
+7/4/2017 17:26 /event in 10min
+25/8/2017 21:20 /event 25th august 2018 at 9:20 pm
+25/8/2017 9:15 /event 25-aug-2018 9:15am
+25/8/2017 0:0 /event 25/08/2018
+25/8/2017 0:0 /event 25th-aug-2018
+25/4/2017 0:0 /event 25/04/2018
+25/4/2017 0:0 /event 25/04/20
+25/4/2017 0:0 /event 25/04/20
+25/4/2025 0:0 /event 25.04.25
+25/4/2017 12:0 /event apr-25 at 12pm
+25/4/2017 12:0 /event apr-25 at 12am
+8/4/2017 0:0 /event tomorrow at noon
+8/4/2017 0:0 /event tomorrow at midday
+8/4/2017 0:0 /event tomorrow at noon
+8/4/2017 0:0 /event noon
+8/4/2017 0:0 /event noon
+8/4/2017 0:0 /event 12am
+8/4/2017 0:0 /event 12pm
+7/4/2017 19:21 /event 12 pm
+8/4/2017 12:0 /event at 12 pm
+8/4/2017 12:0 /event noon
+8/4/2017 12:0 /event noon/event tomorrow at noon
+8/4/2017 12:0 /event tomorrow at 10 past noon
+8/4/2017 15:0 /event tomorrow afternoon at 3
+8/4/2017 10:0 /event next sat at 10
+8/4/2017 5:0 /event next april saturday at 5
+6/1/2018 5:0 /event next january saturday at 5
+6/1/2018 17:0 /event next january saturday at 5 pm
+6/5/2017 17:0 /event next month saturday at 5 pm
+15/4/2017 17:0 /event next week saturday at 5 pm
+15/4/2017 17:0 /event this week saturday at 5 pm

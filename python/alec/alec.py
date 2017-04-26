@@ -7,11 +7,15 @@ Takes messages in the following format:
 
 @author: David
 """
+
 from textblob import TextBlob
 from textblob import Word
 import random
 import re
 
+from natural_time import natural_time
+
+    
 import os
 from pathlib import Path
 from . import re_combiner
@@ -21,7 +25,6 @@ from .alec_organiser import AL_organise
 class Alec():
     
     def __init__(self, ch):
-        print('Alec being created')
         self.chat_handler = ch
         #TODO This is a string telling Alec what to do with the next input he recieves
         self.next_task = []
@@ -53,7 +56,6 @@ class Alec():
         '''Recieves users message and tries to classify it'''
         #Does alec have a specific task to complete?
         try:
-            print(self.next_task)
             r = await self.next_task[0](msg,self.next_args)            
             await self.chat_handler.reply(r)
             return
@@ -71,7 +73,7 @@ class Alec():
         
         #Special case where only alec's name is mentioned
         if re.match(r'^(Alec|alec|al|Al).*$',msg):
-            await self.chat_handler.reply(random.choice(['Yes?','What?','David!']))
+            await self.chat_handler.reply(random.choice(['Yes?','What?',user]))
                            
         #Check for greeting (e.g Hello Alec)
         
@@ -89,7 +91,8 @@ class Alec():
         
     async def organise(self, msg, user):
         '''Organises an event or reminder'''
-        r = await self.organiser.remind_me()
+        r = await self.organiser.remind_me(msg)
+        #r = natural_time(msg)
         await self.chat_handler.reply(r)
         
         

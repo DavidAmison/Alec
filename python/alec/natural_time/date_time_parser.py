@@ -18,14 +18,17 @@ Possible formats for date:
     2) Run through the text systematically analysing each 'word' and it's significance
     3) Return the best possible understanding
 """
+import os
+from pathlib import Path
+
 from datetime import datetime, timedelta
 import calendar
 from dateutil import rrule
 
 import num_parse
+from dates import date_finder, time_finder
 
 from textblob import TextBlob, Word
-import re
 
 #A dictionary of words that can be understood for mapping words of the same meaning and grouping
 _date_words = {
@@ -57,7 +60,7 @@ _date_words = {
         'morning':['time','am'],
         'afternoon':['time','pm'],
         'evening':['time','pm'],
-        'night':['time','am'],
+        'night':['time','pm'],
         'am':['time','am'],
         'pm':['time','pm'],
         'monday':['day',0],
@@ -116,10 +119,15 @@ _date_words = {
         'for':['len','for'],
         'untill':['len','to'],
         'till':['len','to'],
-        'to':['len','to']
+        'to':['len','to'],
+        'a':['one','a'],
+        'an':['one','a'],
+        'midnight':['num','12am'],
+        'midday':['num','12pm'],
+        'noon':['num','12pm'],
         }
 
-class Date_Parser():
+class natural_time():
     
     def __init__(self):
         #Variables for storing the date
@@ -130,7 +138,9 @@ class Date_Parser():
         self.hour = 0
         self.minute = 0
         self.second = 0
-        #Perameters for that will be passed to rrule
+        self.length = 0
+        self.morning = None
+        #Perameters for thwill be passed to rrule
         self.freq = rrule.MINUTELY          #Frequency can be either rrule.YEARLY, MONTHLY, WEEKLY, DAILY, HOURLY, MINUTELY or SECONDLY
         self.dtstart = datetime.now()       #Start from today
         self.interval = 1
@@ -138,6 +148,7 @@ class Date_Parser():
         self.count = 1                      #Returns only one instance as default
         self.until = None
         self.bysetpos = None
+        self.byyear = None
         self.bymonth = None
         self.bymonthday = None
         self.byyearday = None
@@ -146,18 +157,26 @@ class Date_Parser():
         self.byhour = None
         self.byminute = None
         self.bysecond = 0 #Default to 0 seconds (who needs to be that accurate anyway??)
-        #Dictionary for mapping functions
-        #Dictionary mapping tags to specific functions
-        self._tag_func = {
-                'time':self.time_tag,
-                'day':self.day_tag,
-                'mth':self.mth_tag,
-                'rel':self.rel_tag,
-                'at':self.at_tag,
-                'on':self.on_tag,
-                'len':self.len_tag,
-                'num':self.on_tag,
-                }  
+        
+        #self.log = Path(os.path.dirname(__file__))/'date_log.txt'
+        
+        self._tags = {
+                'time',
+                'day',
+                'mth',
+                'rel',
+                'at',
+                'on',
+                'len',
+                'num',
+                'rel_t',
+                'tm',
+                'date',
+                'at',
+                'on',
+                'one',
+                } 
+        
            
         
     def parse_string(self,s):
@@ -174,19 +193,27 @@ class Date_Parser():
         for item in date_mapped:
             if self.contains_digit(item):
                 date_tagged.append(['num',item])
-            elif len(item) == 2:
+            elif item[0] in self._tags:
                 date_tagged.append(item)        
         #Cycle through everything and try to interpret the meaning of all the numbers
         self.interpret_num(date_tagged)
         print(date_tagged)
         #Now the numbers are turned to proper numbers and the words are tagged try to understand
-        #self.interpret_tags(date_tagged)
+        self.interpret_tags(date_tagged)
         #Are there any 'rel' tags in the words. e.g every, tomorrow, next
-        '''
-        date = list(rrule.rrule(self.freq, self.dtstart, self.interval, self.wkstart, self.count, self.until,
-                                self.bysetpos, self.bymonth, self.bymonthday, self.byyearday, self.byweekno,
-                                self.byweekday, self.byhour, self.byminute, self.bysecond)
-        '''
+        
+        date_list = list(rrule.rrule(freq=self.freq, dtstart=self.dtstart, interval=self.interval, wkst=self.wkstart, count=self.count, until=self.until,
+        bysetpos=self.bysetpos, bymonth=self.bymonth, bymonthday=self.bymonthday, byyearday=self.byyearday, byweekno=self.byweekno,
+        byweekday=self.byweekday, byhour=self.byhour, byminute=self.byminute, bysecond=self.bysecond))       
+        
+        date = date_list[0]
+        
+        result = str(date.day)+'/'+str(date.month)+'/'+str(date.year)+' '+str(date.hour)+":"+str(date.minute)
+        #put result in a file   
+        #with open(str(self.log),'a') as log_file:
+        #    log_file.write(result+' '+s+'\n')
+        
+        return result
        
     def contains_digit(self,st):
         try:
@@ -205,149 +232,173 @@ class Date_Parser():
                 i += 1
                 continue
             #Check if the number is some form of time or date.
-            time = self.is_time(item[1])
-            date = self.is_date(item[1])
+            time = time_finder(item[1])
+            date = date_finder(item[1])
             #Interpret the time or date
             if time != None:
                 st_tagged[i] = time
             elif date != None:
                 st_tagged[i] = date
             i += 1
-            
-     
-    def is_time(self,st):
-        '''
-        Recognized formats: 7am, 7:00:00 7:00am (given 'time' tag)
-        7hr, 7s/sec, 7min (given 'rel_t' tag)        
-        '''
-        morning = None
-        hour = 0
-        minute = 0
-        second = 0
-        
-        #Check for s, sec, min or hr at end of word
-        matches = re.search(r'(\d+(?=(s|sec|secs)\b))',st)
-        if matches:
-            second = int(matches.group(1))
-        matches = re.search(r'(\d+(?=(min|mins)\b))',st)
-        if matches:
-            minute = int(matches.group(1))
-        matches = re.search(r'(\d+(?=(hr|hrs)\b))',st)
-        if matches:
-            hour = int(matches.group(1))
-        
-        if hour+minute+second > 0:
-            return ['rel_t',[hour,minute,second]]
-
-        #Check for am or pm at the end of the word
-        am_pm = re.search(r'(am|pm)$',st)
-        try:
-            if am_pm.group(1) == 'am':
-                morning = True
-            else:
-                morning = False
-        except AttributeError:
-            pass    
-        #Check for ##:## format
-        if ':' in st:
-            time = re.findall(r'(\d{1,2})',st)
-            if time:
-                try:
-                    hour = int(time[0])
-                    minute = int(time[1])
-                    second = int(time[2])
-                except IndexError:
-                    pass
-            else:
-                return None
-        else:
-            return None
-        
-        if morning == False and hour < 12:
-            hour += 12
-        
-        return ['tm',[hour,minute,second]]
-    
-    def is_date(self,st):
-        '''
-        Purpose of this function is to interpret numbers as they relate do dates
-        returns ['date',[d,m,y]] where any of these items can be None
-        Recognized formats: 
-        25/04/1994, 25/04, 3rd, 25-04-1994, 25.04.1994
-        Note: will asuume date is of the order day-month-year unless it is explicilty
-        obvious e.g 04/25 is obviously mm/dd
-        '''
-        day = None
-        month = None
-        year = None
-        #First check for the st, th, nd, rd endings
-        matches = re.match(r'\d+(?=(st|th|nd|rd)\b)',st)
-        if matches:
-            #Assumption is that a month day is referred to
-            day = matches.group(0)
-            return ['date',[day,month,year]]
-            
-        #Now check for the seperated values format (seperated by . or / or -)
-        if any(c in st for c in ['.','-','/','\\']):
-            matches = re.findall(r'(\d{1,4})',st)
-            #How many matches are there
-            n = len(matches)
-            if n == 2:
-                if int(matches[1]) > 12:
-                    month = int(matches[0])
-                    day = int(matches[1])
-                else:
-                    month =int(matches[1])
-                    day = int(matches[0])
-                return ['date',[day,month,year]]
-            elif n == 3:
-                if int(matches[1]) > 12:
-                    year = int(matches[2])
-                    month = int(matches[0])
-                    day = int(matches[1])
-                else:
-                    year = int(matches[2])
-                    month = int(matches[1])
-                    day = int(matches[0])
-                #Check if the year was a 2 digit or 4 digit number
-                if year < 1000:
-                    year += 2000 #We are probably going to be in the 21st century...
-                return ['date',[day,month,year]]
-            else:
-                return None
-        else:
-            return None
-            
-        
-        
-                
     
     def interpret_tags(self,st_tagged):
         '''
-        Tries to understand the meaning of a the phrase in relation to dates and time.           
+        Tries to understand the meaning of a the phrase in relation to dates and time.
+        Tags are interpreted in the following order:
+            rel, len, time, day, mth, num
         '''
         #Work through each word, analysing the tag and meaning.
         i = 0
         for w in st_tagged:
             #Note that once anything has been interpreted (even if by another function) it is not looked at again
-            self._tag_func[w[0]](st_tagged,i)  
+            if w[0] == 'rel':
+                self.rel_tag(st_tagged,i)
             i += 1
-        print(self.freq)
-        print(self.dtstart)
-        print(self.byweekday)
-        print(self.byhour)
-        print(self.byminute)
-        print(self.bymonth)
-        print(self.bymonthday)
+        
+        i = 0
+        for w in st_tagged:
+            if w[0] == 'len':
+                self.len_tag(st_tagged,i)
+            i += 1
+                       
+        i = 0
+        for w in st_tagged:
+            if w[0] == 'time':
+                self.time_tag(st_tagged,i)
+            i += 1
             
+        i = 0
+        for w in st_tagged:
+            if w[0] == 'day':
+                self.day_tag(st_tagged,i)
+            i += 1
+            
+        i = 0
+        for w in st_tagged:
+            if w[0] == 'mth':
+                self.mth_tag(st_tagged,i)
+            i += 1        
+        
+        i = 0
+        for w in st_tagged:
+            if w[0] == 'at':
+                self.at_tag(st_tagged,i)
+            i += 1
+
+        i = 0
+        for w in st_tagged:
+            if w[0] == 'num':
+                self.num_tag(st_tagged,i)
+            i += 1
+            
+        i = 0
+        for w in st_tagged:
+            if w[0] == 'tm':
+                self.tm_tag(st_tagged,i)
+            i += 1
+        
+        i = 0
+        for w in st_tagged:
+            if w[0] == 'date':
+                self.date_tag(st_tagged,i)
+            i += 1
+   
+    def date_tag(self,st_tagged,i):
+        '''Pretty straight forward, it's a date'''
+        self.bymonthday = st_tagged[i][1][0] if st_tagged[i][1][0] != None else self.bymonthday
+        self.bymonth = st_tagged[i][1][1] if st_tagged[i][1][1] != None else self.bymonth
+        #For the year need to change the start date
+        if st_tagged[i][1][2] != None:
+            new_year = st_tagged[i][1][2]
+            if self.now.year < new_year:
+                self.dtstart = self.dtstart.replace(year=new_year,month=1,day=1,hour=0,minute=0,second=0)
+                #TODO feedback when event is in the past
+        del st_tagged[i]
+        return
+    
+    def at_tag(self,st_tagged,i):
+        '''
+        Could be followed by lots of things, generally denots a time or place.
+        In this case time is assumed so we check the following 'word' for a number
+        or time.
+        '''
+        if st_tagged[i+1][0] == 'num':
+            #Assume that it refers to an hour
+            self.byhour = int(st_tagged[i+1][1])
+            #Check that it is correct am or pm
+            if self.morning == False:
+                if self.byhour < 12:
+                    self.byhour += 12
+            del st_tagged[i+1]
+        elif st_tagged[i+1][0] == 'tm':
+            #This can be ignored as it will be consumed at another point.
+            pass
+        del st_tagged[i]
+        
+        return
+            
+         
+    def tm_tag(self,st_tagged,i):
+        '''
+        It is assumed currently that this is a start time
+        TODO fix for situations where this is an end time e.g 10pm to 11pm
+        '''
+        self.byhour = st_tagged[i][1][0]
+        self.byminute = st_tagged[i][1][1]
+        self.bysecond = st_tagged[i][1][2]
+        #Check that it matches correct AM/PM
+        if self.morning == False and self.byhour < 12:
+                self.byhour += 12
+        elif self.morning == True and self.byhour >= 12:
+            self.byhour -= 12
+        del st_tagged[i]
+        
+        return
         
     def time_tag(self,st_tagged,i):
+        '''
+        Interprets items tagged with the 'time' tag.
+        Words included in the tag are: second (sec), minute (min), hour (hr)
+        day (day), week (wk), month (mth), year (yr), am and pm (am, pm).
+        TODO get to work with the different time tags (sec, mth, wk etc)
+        '''
+        #First check for am or pm
+        if st_tagged[i][1] == 'am':
+            self.morning = True
+        elif st_tagged[i][1] == 'pm':
+            self.morning = False
+        elif st_tagged[i-1][0] == 'num':
+            if st_tagged[i][1] == 'sec':
+                pass
+            elif st_tagged[i][1] == 'min':
+                pass
+            elif st_tagged[i][1] == 'hr':
+                pass
+            elif st_tagged[i][1] == 'day':
+                pass
+            elif st_tagged[i][1] == 'wk':
+                pass
+            elif st_tagged[i][1] == 'mth':
+                pass
+            elif st_tagged[i][1] == 'yr':
+                pass
+            del st_tagged[i]
+            del st_tagged[i-1]
+        del st_tagged[i]
         return
     
     def day_tag(self,st_tagged,i):
+        '''
+        Includes all the days of the week. It is assumed that this is equivalent to
+        next ... e.g Monday is assumed to mean next Monday.
+        '''
+        self.byweekday = st_tagged[i][1]
+        del st_tagged[i]
         return
     
     def mth_tag(self,st_tagged,i):
+        self.bymonth = st_tagged[i][1]
+        del st_tagged[i]
         return
     
     def rel_tag(self,st_tagged,i):
@@ -356,7 +407,7 @@ class Date_Parser():
         Words included in this tag are: yesterday (yest), today (td), tomorrow (tmrw)
         last (last), this (this), next (nxt), every (evy)
         '''
-        #TODO case where word is first
+        #TODO case where word is first, second, third etc (lost as a number)
         #First find out which instance of the tag we are looking at
         word = st_tagged[i][1]
         if word == 'yest':
@@ -366,14 +417,14 @@ class Date_Parser():
             date = self.now
             self.byyear = date.year
             self.bymonth = date.month
-            self.byday = self.day           
+            self.bymonthday = self.day           
         elif word == 'tmrw':
             #Set start date to tomorrow at 00:00
             date = self.now + timedelta(days=1)
             date.replace(hour = 0, minute = 0, second = 0)
             self.byyear = date.year
             self.bymonth = date.month
-            self.byday = self.day
+            self.bymonthday = date.day
         elif word == 'last':
             try:
                 last_what = st_tagged[i+1] #should be tagged as [time,day] or [day,(day)]
@@ -397,29 +448,36 @@ class Date_Parser():
                 next_what = st_tagged[i+1]
                 if next_what[0] == 'day':
                     date = (self.now + timedelta(days=7)).replace(hour=23,minute=59,second=59)                
-                    self.count = None
-                    self.until = date
+                    self.count = 1
+                    #self.until = date
                     self.byweekday = next_what[1]
                     del st_tagged[i+1]
                 elif next_what[0] == 'mth':
-                    date = (self.now + timedelta(days=366 if calendar.isleap(self.now.year) else 365))
-                    max_day = calendar.monthrange(date.year,date.month)[1]
-                    date = date.replace(day=max_day,hour=23,minute=59,second=59)
-                    self.count = None
-                    self.until = date
-                    self.bymonth = next_what[1]
+                    date = self.now
+                    if date.month == 12:
+                        date.replace(day=31,month=1,year=date.year+1,hour=0,minutes=0,second=0)
+                        self.dtstart = date
+                    else:
+                        self.bymonth = next_what[1]
                     del st_tagged[i+1]
                 elif next_what[1] == 'yr':
+                    #For some reason there is no byyear thing so need to change start date
                     self.byyear = self.now.year + 1
+                    self.dtstart = self.dtstart.replace(day = 1, month = 1, year = self.now.year+1, hour = 0, minute = 0, second = 0)
                     del st_tagged[i+1]
                 elif next_what[1] == 'mth':
-                    month_days = calendar.monthrange(self.now.year,self.now.month)[1]
-                    self.bymonth = (self.now + timedelta(days=month_days)).month
+                    
+                    date = self.now
+                    if date.month < 12:
+                        self.bymonth = date.month + 1
+                    else:
+                        self.bymonth = 1
+                    print('Next Month',self.bymonth)
                     del st_tagged[i+1]
                 elif next_what[1] == 'wk':
                     date = self.now + timedelta(days=7)
                     self.byyear = date.isocalendar()[0]
-                    self.byweek = (self.now + timedelta(days=7)).isocalendar()[1]
+                    self.byweekno = (self.now + timedelta(days=7)).isocalendar()[1]
                     del st_tagged[i+1]
                 elif next_what[1] == 'day':
                     date = self.now + timedelta(day=1)
@@ -433,12 +491,12 @@ class Date_Parser():
                 print('Unexpected format: next/this')
             
             del st_tagged[i] 
-        elif word == 'evy':
-            
+        elif word == 'evy':            
             del st_tagged[i]
         return
     
-    def at_tag(self,st_tagged,i):
+    
+    def num_tag(self,st_tagged,i):
         return
     
     def on_tag(self,st_tagged,i):
@@ -452,14 +510,50 @@ class Date_Parser():
         word = st_tagged[i][1]
         if word == 'for':
             #TODO (sort out later)
-            del st_tagged[i]
-            if st_tagged[i+1][0] == 'num': del st_tagged[i+1]
+            if st_tagged[i+1][0] == 'num': 
+                n = int(st_tagged[i+1][1])
+                if st_tagged[i+2][0] == 'time':
+                    if st_tagged[i+2][1] == 'sec':
+                        self.length = n
+                        del st_tagged[i+2]
+                    elif st_tagged[i+2][1] == 'min':
+                        self.length = n * 60
+                        del st_tagged[i+2]
+                    elif st_tagged[i+2][1] == 'hr':
+                        self.length = n * 3600
+                        del st_tagged[i+2]
+                else:
+                    #Assume hours intended
+                    self.length = n * 3600
+            elif st_tagged[i+1][0] == 'rel_t':
+                #Convert relative time to only seconds
+                self.length = st_tagged[i+1][1][0]*3600 + st_tagged[i+1][1][1]*60 + st_tagged[i+1][1][2]
+                pass
+            elif st_tagged[i+1][0] == 'one':
+                #Check the unit of time the user is intending (assume hours otherwise)
+                if st_tagged[i+2][0] == 'time':
+                    if st_tagged[i+2][1] == 'sec':
+                        self.length = n
+                        del st_tagged[i+2]
+                    elif st_tagged[i+2][1] == 'min':
+                        self.length = n * 60
+                        del st_tagged[i+2]
+                    elif st_tagged[i+2][1] == 'hr':
+                        self.length = n * 3600
+                        del st_tagged[i+2]
+                else:
+                    #Assume hours intended
+                    self.length = n * 3600
+                pass
+            
+            del st_tagged[i+1]                
+                
         elif word == 'to':
             #TODO add functionality to consider number before and after
             del st_tagged[i]
-            if st_tagged[i+1][0] == 'num': del st_tagged[i+1]
-            pass
+            if st_tagged[i+1][0] == 'num':     
+                pass
+            elif st_tagged[i+1][0] == 'tm':
+                pass
         
-        
-        pass
-        
+        del st_tagged[i]

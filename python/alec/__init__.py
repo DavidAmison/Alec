@@ -12,7 +12,7 @@ class AlecChat(BeardChatHandler):
          'Teach Alec to recognise certain input'),
         ('talk','talk',
          'Puts Alec into conversation mode'),
-        ('organise','organise',
+        ('event','organise',
          'Organises a reminder or an event'),
     ]
     
@@ -21,6 +21,7 @@ class AlecChat(BeardChatHandler):
     _timeout = 90
     
     def __init__(self, *args, **kwargs):
+        print('creating alec')
         super().__init__(*args, **kwargs)
         self.AL = alec.Alec(self)
         self.msg_text = ''

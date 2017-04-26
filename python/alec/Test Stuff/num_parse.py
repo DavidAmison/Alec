@@ -6,7 +6,7 @@ Converts written numbers to integers: Currenlty designed only for positive whole
 
 @author: David
 """
-from textblob import TextBlob
+#from textblob import TextBlob
 
 
 d_numbers = {        
@@ -220,8 +220,4 @@ def convert_num(s):
             previous_num = 0
     
     output = ' '.join(str(w) for w in output_w)   
-    return output
-        
-    
-        
-        
+    return output      
