@@ -65,7 +65,6 @@ class AlecChat(BeardChatHandler):
     async def input(self):
         '''Waits for the user to send input'''
         reply = await self.listener.wait()
-        print(reply)
         self.msg_text = reply['text']
         self.msg_username = reply['from']['first_name']    
         return self.msg_text, self.user_name

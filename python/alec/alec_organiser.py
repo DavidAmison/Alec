@@ -9,13 +9,14 @@ Created on Fri Mar  3 19:17:27 2017
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger 
 from datetime import datetime
+import dateutil.parser
 from natural_time import natural_time
 
 from pathlib import Path
+import json
 import os
+import re
 
-#from . import alec
-#from . import date_time_parser
 
 class AL_organise():
     #Class for creating and organising reminders and events.
@@ -38,14 +39,31 @@ class AL_organise():
         
         self.scheduler = AsyncIOScheduler() #The scheduler for Alec to place reminders
         self.scheduler.start()
+        #All events in the file should be loaded into the scheduler
+        with open(str(self._reminders)) as f_json:
+            for line in f_json:
+                event = json.loads(line)
+                self.load_event(event)
+        self.next_id = int(event['ID']) + 1
+        print("Events Loaded")
         
+    def load_event(self,event):
+        '''Events is a list of events in json format'''
+        dt = dateutil.parser.parse(event["DateTime"])
+        self.scheduler.add_job(self.triggered,trigger=DateTrigger(dt),id=event['ID'],args=[event['Msg']])
+        #Check the ID so we are not repeating any!
+        
+    
     async def interpret(self, msg):
         return str(natural_time(msg))
     
     async def triggered(self,msg=''):
         #Extract the message
         await self.AL.chat_handler.reply(msg)
-        
+
+    async def want_reminder(self,msg='',args=[]):
+        if re.match('(yes)',msg.lower()):
+            return await self.remind_me(msg) 
     
     async def remind_me(self,msg='',args=[]):
         '''Starts the process of Alec making a new reminder'''
@@ -78,9 +96,8 @@ class AL_organise():
         self._rmd['Msg'] = msg
         self.AL.next_task = ''
         #Add the event to the file
-        f = open(str(self._reminders),'a')
-        f.write(str(self._rmd)+'\n')
-        f.close()   
+        with open(str(self._reminders),'a') as f:
+            f.write(json.dumps(self._rmd)+'\n')  
         #Add the event to the scheduler
         self.scheduler.add_job(self.triggered,trigger=DateTrigger(self._datetime),id=self._rmd['ID'],args=[msg])
         return 'Reminder set {}'.format(str(self._rmd))        

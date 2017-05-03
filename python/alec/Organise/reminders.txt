@@ -1,12 +1,9 @@
-{'ID': 1, 'Time': '21:40', 'Msg': 'Yo David', 'Date': '03/03/2017', 'Name': 'Test'}{'Name': 'Test', 'ID': 1, 'DateTime': '2017-04-26 17:46:06', 'Msg': 'Test'}
-{'Name': 'Bob', 'ID': 2, 'DateTime': '2017-04-27 17:00:00', 'Msg': 'Hello Bob'}
-{'Msg': 'Test', 'DateTime': '2017-04-26 17:59:41', 'ID': 1, 'Name': 'Test'}
-{'DateTime': '2017-04-26 18:00:38', 'Msg': 'Test', 'ID': '1', 'Name': 'Test'}
-{'ID': '1', 'Name': 'Test', 'Msg': 'Test', 'DateTime': '2017-04-26 18:01:33'}
-{'ID': '1', 'DateTime': '2017-04-26 18:03:29', 'Msg': 'Test', 'Name': 'Test'}
-{'DateTime': '2017-04-26 18:10:22', 'ID': '1', 'Msg': 'Test', 'Name': 'Test'}
-{'DateTime': '2017-04-26 18:12:57', 'ID': '1', 'Name': 'Test', 'Msg': 'Test'}
-{'ID': '1', 'Name': 'Test', 'DateTime': '2017-04-26 18:14:17', 'Msg': 'Test'}
-{'ID': '2', 'Name': 'Test', 'DateTime': '2017-04-26 18:15:16', 'Msg': 'Reminded'}
-{'ID': '1', 'DateTime': '2017-04-26 18:16:31', 'Msg': 'Bob', 'Name': 'Test'}
-{'ID': '1', 'DateTime': '2017-04-26 18:17:52', 'Name': 'Test', 'Msg': 'Bob'}
+{"ID": "2", "Name": "Read Scriptures", "DateTime": "2017-05-03 07:00:00", "Msg": "Read your scriptures."}
+{"ID": "3", "Name": "Read Scriptures", "DateTime": "2017-05-03 07:00:00", "Msg": "Read your scriptures."}
+{"ID": "4", "DateTime": "2017-05-02 21:21:41", "Msg": "Reminded", "Name": "Meeting"}
+{"ID": "5", "DateTime": "2017-05-02 21:25:24", "Name": "Sleep", "Msg": "Sleep"}
+{"Msg": "Test Event", "Name": "Test", "DateTime": "2017-05-02 21:29:51", "ID": "6"}
+{"Msg": "You need to confirm who can attend RPG.", "Name": "RPG Set-up", "DateTime": "2017-05-03 09:00:00", "ID": "7"}
+{"ID": "8", "Msg": "It's time to sleep.", "DateTime": "2017-05-03 22:00:00", "Name": "Sleep"}
+{"ID": "9", "Msg": "Your exam starts in an hour. Better get ready.", "DateTime": "2017-05-03 13:00:00", "Name": "Industrial Skills Exam"}
+{"ID": "10", "Msg": "Your exam starts in an hour!", "DateTime": "2017-05-03 13:00:00", "Name": "Industrial Skills Exam"}

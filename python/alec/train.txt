@@ -1,0 +1,39 @@
+I have an appointment tomorrow at 6pm,pos
+Tomorrow morning I need to go shopping,pos
+This afternoon at 4 I am meeting Professor Wysinski,pos
+Remind me to walk the dog tomorrow morning,pos
+I had a great meeting yesterday,neg
+Did you watch call the midwife last night,neg
+I want to go to barbados,neg
+Yesterday I had an ice cream,neg
+Now I need it to actually schedule the events.,neg
+At 6:30 I need to head to the chapel,pos
+I have a meeting with my personal tutor on the 16th June,pos
+I have a lecture at 12'oclock,pos
+I have an exam tomorrow at 2:30pm,pos
+What is your name?,neg
+How long until you arrive?,neg
+How is the book you are reading?,neg
+Shall we meet on friday,pos
+I need to meet with Bob tomorrow afternoon,pos
+I want to eat an icecream,neg
+My appointment is tomorrow afternoon at 5,pos
+I like your dog,neg
+What is for dinner tomorrow?,neg
+No worries just thought I'd ask!,neg
+I'm not sure if I'm going to have time today.,neg
+Just putting out feelers: would anyone be up for some RPG prep this afternoon?,pos
+Would anyone be up for some RPG prep this afternoon?,pos
+Yeah telegram on the computer is way useful I use it all the time!,neg
+And what is that thing I need to download?,neg
+I'll be there half seven.,pos
+7 at mine tonight?,pos
+Great! Looks like we've got all we need!,neg
+I have hockey tomorrow,pos
+Testing the admin decorator,neg
+I need to eat in 30 minutes,pos
+I need to go shopping in a couple of hours,pos
+I need to shower later,pos
+In 10 minutes I am going home,pos
+Dinner is in 45 minutes,pos
+Can you remind me to sleep tonight?,pos

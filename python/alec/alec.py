@@ -14,6 +14,7 @@ import random
 import re
 
 from natural_time import natural_time
+from .reminderfinder import classifier
 
     
 import os
@@ -41,6 +42,8 @@ class Alec():
         #Classes for doing stuff        
         self.learn = AL_teach(self)
         self.organiser = AL_organise(self)
+        self._trainer_path = Path(os.path.dirname(__file__)) / 'train.txt'
+        self._classifier = classifier(self._trainer_path)
         
         #Some memory stuff (not yet implemented files)
         self.greetings = ['Hi','Hey','Hello',"G'day"]
@@ -62,7 +65,7 @@ class Alec():
         except IndexError:
             pass #do nothing and continue along
                                   
-        #Did the user refer to Alec      
+        #Did the user refer to Alec? If not then don't do anything      
         if (self.said_my_name.search(msg) == None) and (self.wait_for_reply == False):
             #The message wasn't meant for me
             print('Message not for me')
@@ -72,18 +75,22 @@ class Alec():
             return
         
         #Special case where only alec's name is mentioned
-        if re.match(r'^(Alec|alec|al|Al).*$',msg):
+        if re.match(r'^(Alec|alec|al|Al).?$',msg):
             await self.chat_handler.reply(random.choice(['Yes?','What?',user]))
                            
-        #Check for greeting (e.g Hello Alec)
-        
+        #Special case where a greeting is given. Check for greeting (e.g Hello Alec)
         exp = re.compile((r'(^' + re_combiner.combine_or_file(self.language/'greetings.txt') + 
                              r' \b' + re_combiner.combine_or(self.names) + r'\b)').lower())
         if exp.match(msg.lower()):
             reply_msg = '{} {}'.format(random.choice(self.greetings),user)
             await self.chat_handler.reply(reply_msg)
-      
             
+        #Check for a possible reminder using the classifiers
+        if self._classifier.classify(msg) == 'pos':
+            await self.chat_handler.reply('Do you want me to remind you?')
+            self.next_task = [self.organiser.want_reminder]
+   
+    
     async def teach(self, msg, user):
         '''Teaches Alec something new (but related to what he already knows)'''
         r = await self.learn.init_teaching()
